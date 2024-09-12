@@ -1,11 +1,10 @@
 /**
  * 
  */
-import React, { useState, useEffect, useRef, ChangeEvent, MouseEvent  } from 'react';
-import { DataTable, DataTableSelectionChangeEvent } from 'primereact/datatable';
+import  { useState, useEffect, useRef, ChangeEvent  } from 'react';
+import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { OverlayPanel } from 'primereact/overlaypanel';
-import { InputSwitch, InputSwitchChangeEvent } from 'primereact/inputswitch';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
         
@@ -47,7 +46,6 @@ export default function App() {
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [rowClick, setRowClick] = useState<boolean>(true);
     
     const op = useRef<OverlayPanel>(null)
     const debounceTimeout = useRef<number | undefined>(undefined); 
@@ -142,9 +140,11 @@ export default function App() {
                     emptyMessage="No records found"
                     paginatorTemplate="PrevPageLink PageLinks NextPageLink"
                     lazy
-                    onPage={(e)=>updateTableStates(e.page + 1)}
+                    onPage={(e)=>{
+                        const page = e.page ?? 0;
+                        updateTableStates(page+1)}}
                     first={pagination?.offset}
-                selectionMode={rowClick ? undefined : 'multiple'} 
+                selectionMode={'multiple'} 
                 selection={selectedTitles!}
                 onSelectionChange={(e) => setSelectedTitles(e.value)} dataKey="id" tableStyle={{ minWidth: '50rem' }}
                 >
@@ -153,7 +153,7 @@ export default function App() {
                     
                     <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}
                     header = <div style={{margin:'0 5px 0 0'}}>
-                        <Button size= 'small' type="button" icon="pi pi-angle-down"onClick={(e) => op.current.toggle(e)} />
+                        <Button size= 'small' type="button" icon="pi pi-angle-down"onClick={(e) => op.current?.toggle(e)} />
 
                         <OverlayPanel ref={op}>
                         <InputText type="number" className="p-inputtext-sm"  placeholder="Enter number of rows"
