@@ -18,3 +18,7 @@ body {
     border-radius: 10px;
     margin-bottom: 1rem;
 }
+
+#custom-selector{
+    margin:0 5px 0 0;
+}

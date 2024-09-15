@@ -109,15 +109,23 @@ export default function App() {
         const newValue:number = parseInt(e.target?.value)|| 0;
 
         /** API Limitation */
-        if(newValue>100) alert("Can not select more than 100 records at once")
-    
+        if(newValue>100){
+            alert("Can not select more than 100 records at once");
+            return;
+        }
+
+        /** Negative numbers */
+        if(newValue<0){
+            alert("Please give a number between 0 to 100");
+            return;
+        } 
+
         /**  Clear the previous timeout */
         if (debounceTimeout.current) {
           clearTimeout(debounceTimeout.current);
         }
         debounceTimeout.current = window.setTimeout(async():Promise<void> => {
-          
-          if(newValue!=0 && newValue<=100){
+          if(newValue!=0){
               const {titles} = await fetchData(1,newValue);
               console.log(titles)
               setSelectedTitles(titles);
@@ -126,6 +134,14 @@ export default function App() {
         },500); 
     }
 
+    const CustomSelector = () => 
+    <div id='custom-selector' >
+        <Button size= 'small' type="button" icon="pi pi-angle-down"onClick={(e) => op.current?.toggle(e)} />
+        <OverlayPanel ref={op}>
+            <InputText type="number" min="0" className="p-inputtext-sm"  placeholder="Enter number of rows"
+            onChange={rowSelectorHandler} />
+        </OverlayPanel>
+    </div>    
 
     if (loading) return <h1>Loading...</h1>;
     if (error) return <h1>Error: {error}</h1>;
@@ -138,7 +154,7 @@ export default function App() {
                     rows={ pagination?.limit} 
                     totalRecords={pagination?.total ?? 0}  
                     emptyMessage="No records found"
-                    paginatorTemplate="PrevPageLink PageLinks NextPageLink"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
                     lazy
                     onPage={(e)=>{
                         const page = e.page ?? 0;
@@ -152,15 +168,7 @@ export default function App() {
 
                     
                     <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}
-                    header = <div style={{margin:'0 5px 0 0'}}>
-                        <Button size= 'small' type="button" icon="pi pi-angle-down"onClick={(e) => op.current?.toggle(e)} />
-
-                        <OverlayPanel ref={op}>
-                        <InputText type="number" className="p-inputtext-sm"  placeholder="Enter number of rows"
-                        onChange={rowSelectorHandler} />
-
-                        </OverlayPanel>
-                     </div>    
+                    header = <CustomSelector/>
                     >
                         
 
