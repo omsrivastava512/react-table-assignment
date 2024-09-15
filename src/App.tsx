@@ -47,7 +47,8 @@ export default function App() {
         const [selectedTitles, setSelectedTitles] = useState<Title[] | null>(null);
         /** For pagination and table render */
         const [pagination, setPagination] = useState<Pagination | null>(null);
-        const [loading, setLoading] = useState<boolean>(true);
+        const [tableLoading, setTableLoading] = useState<boolean>(true);
+        const [selectionLoading, setSelectionLoading] = useState<boolean>(false);
         const [error, setError] = useState<string | null>(null);
         
         const op = useRef<OverlayPanel>(null)
@@ -65,7 +66,7 @@ export default function App() {
 
     /** Fetch records based on page number and record limit **/
     const fetchData = async (page: number, limit:number): Promise<{ titles: Title[], pagination: Pagination}> => {
-        console.log("Limit: "+limit);
+    
         try {
             const response = await fetch(`https://api.artic.edu/api/v1/artworks?page=${page}&limit=${limit??12}`);
             if (!response.ok) {
@@ -73,7 +74,6 @@ export default function App() {
             }
             const data: ApiResponse = await response.json();
 
-            console.log("Current Page: " + page);
             const filteredData: Title[] = data.data.map((record: Title) => {
                 /** Why even store all those keys? **/
                 const { id, title, place_of_origin, artist_display, inscriptions, date_start, date_end } = record;
@@ -95,23 +95,22 @@ export default function App() {
                 }
             };
         } finally {
-            setLoading(false);
+            setTableLoading(false);
         }
     };
 
 
     /** Updating states used in DataTable like titles and pagination  **/
     const updateTableStates = async(page:number):Promise<void> => {
-        setLoading(true);
+        setTableLoading(true);
         const {titles, pagination} = await fetchData(page,12);
-        console.log(titles)
+       
         setTitles(titles);
         setPagination(pagination);
     }
     
     /** Toasts */
     const showError = (message:string = "Undefined Error") => {
-        console.log(toast);
         toast.current?.show({severity:'error', summary: 'Error', detail:message, life: 3000});
     }
 
@@ -135,8 +134,9 @@ export default function App() {
                 return;
             }       
             if(newValue!=0){
+                setSelectionLoading(true);
                 const {titles} = await fetchData(1,newValue);
-                console.log(titles)
+                setSelectionLoading(false);
                 setSelectedTitles(titles);
             }
           else setSelectedTitles(null);
@@ -152,7 +152,7 @@ export default function App() {
         </OverlayPanel>
     </div>    
 
-    if (loading) return <h1>Loading...</h1>;
+    if (tableLoading) return <h1>Loading...</h1>;
     if (error) return <h1>Error: {error}</h1>;
 
     return (
@@ -166,6 +166,7 @@ export default function App() {
                     emptyMessage="No records found"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
                     lazy
+                    loading={selectionLoading}
                     onPage={(e)=>{
                         const page = e.page ?? 0;
                         updateTableStates(page+1)}}
